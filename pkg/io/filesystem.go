@@ -2,9 +2,11 @@ package io
 
 import (
 	"encoding/json"
-	"go/types"
+	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/csalg/lomb-cli/pkg/types"
 )
 
 const (
@@ -23,7 +25,11 @@ func ReadConfig() (config types.Config, err error) {
 		return config, err
 	}
 	defer configFile.Close()
-	err = json.NewDecoder(configFile).Decode(&config)
+	configFileBytes, err := io.ReadAll(configFile)
+	if err != nil {
+		return config, err
+	}
+	err = json.Unmarshal(configFileBytes, &config)
 	if err != nil {
 		return config, err
 	}

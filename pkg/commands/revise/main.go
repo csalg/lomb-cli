@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/csalg/lomb-cli/pkg/io"
+	"github.com/csalg/lomb-cli/pkg/service"
 	"github.com/urfave/cli/v2"
 )
 
@@ -23,11 +25,23 @@ func Cmd() *cli.Command {
 			targetLang := ctx.String("target-language")
 			lemmasFilename := ctx.String("lemmas-file")
 			// TODO: Serve template.
+			config, err := io.ReadConfig()
+			if err != nil {
+				log.Fatal(err)
+			}
+			s := service.New(config)
 
 			lemmas := readLemmas(lemmasFilename)
-			urlMap := newDictionaryURLMap(sourceLang, targetLang)
 			for _, lemma := range lemmas {
-				fmt.Println(urlMap(lemma))
+				url, err := s.GetDictionaryURL(&service.GetDictionaryURLInput{
+					SourceLanguage: sourceLang,
+					TargetLanguage: targetLang,
+					Lemma:          lemma,
+				})
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Println(url)
 			}
 			return nil
 		},
@@ -35,6 +49,7 @@ func Cmd() *cli.Command {
 }
 
 func readLemmas(filename string) (lemmas []string) {
+
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -53,8 +68,6 @@ func readLemmas(filename string) (lemmas []string) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-
-	config := io.ReadConfig()
 
 	return lemmas
 }
