@@ -1,11 +1,10 @@
-
 package main
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/csalg/lomb-cli/pkg/revise"
+	"github.com/csalg/lomb-cli/pkg/commands/revise"
 	"github.com/urfave/cli/v2"
 )
 

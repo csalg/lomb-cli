@@ -1,0 +1,31 @@
+package io
+
+import (
+	"encoding/json"
+	"go/types"
+	"os"
+	"path/filepath"
+)
+
+const (
+	configFilename = ".config/lomb/config.json"
+)
+
+// ReadConfig reads the configuration file.
+func ReadConfig() (config types.Config, err error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return config, err
+	}
+	configPath := filepath.Join(homeDir, configFilename)
+	configFile, err := os.Open(configPath)
+	if err != nil {
+		return config, err
+	}
+	defer configFile.Close()
+	err = json.NewDecoder(configFile).Decode(&config)
+	if err != nil {
+		return config, err
+	}
+	return config, nil
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Revise</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+      .container {
+        display: flex;
+        flex-direction: row;
+        width: 100vw;
+      }
+      .filters {
+      }
+      .lemmas {
+      }
+      .dictionary {
+        background: pink;
+      }
+      .sentences {
+        background: green;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex h-screen w-screen">
+      <div class="flex-auto overflow-y-scroll">
+        <div class="filters">
+          filters go here.
+        </div>
+        <div class="lemmas">
+          <table class="table-fixed">
+            <tr>
+              <th>Word</th>
+              <th>Frequency</th>
+              <th>PoR</th>
+              <th>Actions</th>
+            </tr>
+            <tr>
+              <td>Foo</td>
+              <td>100</td>
+              <td>0.88</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Bar</td>
+              <td>100</td>
+              <td>0.88</td>
+              <td></td>
+          </table>
+        </div>
+      </div>
+      <div class="flex-auto flex flex-col">
+           <iframe class="flex-auto overflow-y-scroll" src="https://www.example.com" title="W3Schools Free Online Web Tutorials"></iframe>
+      </div>
+    </div>
+  </body>
+</html>
