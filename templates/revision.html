@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="css/style.css" rel="stylesheet">
     <style>
       .container {
         display: flex;
@@ -28,7 +27,7 @@
     <div class="flex h-screen w-screen">
       <div class="flex-auto overflow-y-scroll">
         <div class="filters">
-          filters go here.
+          <!-- Filter values should just be passed on the command line. -->
         </div>
         <div class="lemmas">
           <table class="table-fixed">
@@ -38,17 +37,14 @@
               <th>PoR</th>
               <th>Actions</th>
             </tr>
-            <tr>
-              <td>Foo</td>
-              <td>100</td>
-              <td>0.88</td>
+            {{ range .Lemmas }}
+            <tr data-lemma="{{ .Lemma }}" data-url='{{ .URL }}' class="hover:bg-gray-100 lemma">
+              <td>{{ .Lemma }}</td>
+              <td></td>
+              <td></td>
               <td></td>
             </tr>
-            <tr>
-              <td>Bar</td>
-              <td>100</td>
-              <td>0.88</td>
-              <td></td>
+            {{ end }}
           </table>
         </div>
       </div>
@@ -56,5 +52,15 @@
            <iframe class="flex-auto overflow-y-scroll" src="https://www.example.com" title="W3Schools Free Online Web Tutorials"></iframe>
       </div>
     </div>
+    <script>
+      const lemmas = document.querySelectorAll('.lemma');
+      lemmas.forEach(lemma => {
+        lemma.addEventListener('click', () => {
+          const url = lemma.dataset.url;
+          const iframe = document.querySelector('iframe');
+          iframe.src = url;
+        });
+      });
+    </script>
   </body>
 </html>

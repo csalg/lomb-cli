@@ -3,6 +3,8 @@ package types
 // Config is the configuration for the lomb CLI.
 type Config struct {
 	Dictionaries []Dictionary `json:"dictionaries"`
+	Port         int          `json:"port"`
+	Host         string       `json:"host"`
 }
 
 type Dictionary struct {
