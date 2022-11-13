@@ -1,8 +1,10 @@
 package io
 
 import (
+	"bufio"
 	"encoding/json"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -34,4 +36,28 @@ func ReadConfig() (config types.Config, err error) {
 		return config, err
 	}
 	return config, nil
+}
+
+// ReadLemmas reads a list of lemmas from a file.
+func ReadLemmas(filename string) (lemmas []string) {
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lemma := scanner.Text()
+		if lemma == "" {
+			continue
+		}
+		lemmas = append(lemmas, lemma)
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return lemmas
 }

@@ -31,7 +31,7 @@ func Cmd() *cli.Command {
 			}
 			s := service.New(config)
 
-			lemmas := readLemmas(lemmasFilename)
+			lemmas := io.ReadLemmas(lemmasFilename)
 			for _, lemma := range lemmas {
 				url, err := s.GetDictionaryURL(&service.GetDictionaryURLInput{
 					SourceLanguage: sourceLang,
@@ -45,61 +45,5 @@ func Cmd() *cli.Command {
 			}
 			return nil
 		},
-	}
-}
-
-func readLemmas(filename string) (lemmas []string) {
-
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lemma := scanner.Text()
-		if lemma == "" {
-			continue
-		}
-		lemmas = append(lemmas, lemma)
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	return lemmas
-}
-
-type dictionaryUrlMap func(string) string
-
-func newDictionaryURLMap(sourceLang, targetLang string) dictionaryUrlMap {
-	return func(lemma string) string {
-		switch sourceLang {
-		case "en":
-			switch targetLang {
-			case "en":
-				return fmt.Sprintf("https://www.merriam-webster.com/dictionary/%s", lemma)
-			}
-		case "da":
-			switch targetLang {
-			case "da":
-				return fmt.Sprintf("https://ordnet.dk/ddo/ordbog?query=%s", lemma)
-			case "en":
-				return fmt.Sprintf("https://en.bab.la/dictionary/danish-english/%s?trending=1", lemma)
-			}
-		case "es":
-			switch targetLang {
-			case "es":
-				return fmt.Sprintf("https://dle.rae.es/%s?m=form", lemma)
-			}
-		case "de":
-			switch targetLang {
-			case "en":
-				return fmt.Sprintf("https://android.linguee.com/german-english/translation/%s.html", lemma)
-			}
-		}
-		return ""
 	}
 }
