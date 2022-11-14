@@ -12,6 +12,7 @@ type Dictionary struct {
 	URL             string                     `json:"url"`
 	SourceLanguages []LanguageDictionaryConfig `json:"source_languages"`
 	TargetLanguages []LanguageDictionaryConfig `json:"target_languages"`
+	CSSBlacklist    []string                   `json:"css_blacklist"`
 }
 
 type LanguageDictionaryConfig struct {

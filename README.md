@@ -86,3 +86,44 @@ I could also make tarballs of the thing and back these up (e.g. using `borg`).
 `python` has a horrible distribution story. I think it makes sense to ONLY use python for training models and scoring. I can also see having a service eventually where a csv file gets sent and it comes back scored.
 
 This should hopefully make the whole thing more resilient. Also, I can easily see the use of becoming very good at `go` given my current career. I can see the use of having good skeletons and documentation of the tools I use at work. Then I can piggyback off that for this project.
+
+### Ideas for reverse indexes
+
+So the idea is to avoid the use of mongodb.
+
+To be honest, if I only have, say ~1000 files, scanning those files is not super traumatic (maybe ~10 minutes?). In practice those ~1000 files _are_ the database, and anything else is ETL.
+
+The use case of having a reverse index is to look for examples of words I am studying. So if we are going to be efficient about this, keeping a reverse index of all the words is unnecessary. 
+
+Anyway, so all I really need to do is have a command that reads all the files and creates a reverse index somewhere. It can / should be stored in `sqlite`.
+
+`lomb index`
+
+As a naive approach:
+- Keep a table with all the files that have been indexed and when they were last indexed.
+- Keep a table with the chunks (both langs and reference to source file)
+- Need to index again? Do it in memory, then nuke db tables and insert.
+
+If that takes too long, can look into alternatives like keeping a list of which books have been read since last index and just look at those. Frankly, this can just be inferred from the log.
+
+### Cool features of Lomb
+
+1. Drill books before reading them
+2. Revision lemmas have frequency based on corpus
+3. Probability of forgetting
+4. Reverse index (lemma to chunk) of revision lemmas
+5. Ignore lemmas automatically (if they are scrolled)
+6. Video player
+7. Proxy server that cleans up dictionary sites
+8. Text reader
+
+(1) is kinda trivial. Just build a reverse index of the file and serve it using the revision view. Cache it so it's fast (use `gob` so it's in binary).
+(2) this is also trivial, it's the count of the chunks.
+(3) this is NOT trivial at all. I guess I could use Python for this one. However I would need to calculate the PoR and share it with go somehow. I think it would need to be a `systemctl` service
+(4) how to compute it is easy (e.g. use `goquery` and look at the `data` attributes). Storing it... I guess sqlite with an index.
+(5) keep a list of ignored lemmas which gets persisted on blacklisting new ones.
+(6) i already have this so I just need to serve it from `go` and log.
+(7) also trivial. i could add a `blacklisted_css` field to the `config.json` `dictionaries` entries.
+(8) also trivial.
+
+I think with `go` and `gob` I sort of get to implement my own database.

@@ -5,10 +5,13 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/csalg/lomb-cli/pkg/io"
 	"github.com/csalg/lomb-cli/pkg/lib"
+	"github.com/csalg/lomb-cli/pkg/lib/cleanup"
 	"github.com/csalg/lomb-cli/pkg/service"
 	"github.com/csalg/lomb-cli/pkg/types"
 	"github.com/go-chi/chi/v5"
@@ -32,6 +35,7 @@ func Cmd() *cli.Command {
 			&cli.StringFlag{Name: "target-language", Aliases: []string{"t"}, Required: true},
 			&cli.StringFlag{Name: "lemmas-file", Aliases: []string{"l"}, Required: true},
 			&cli.BoolFlag{Name: "stdout", Aliases: []string{"o"}, Required: false},
+			&cli.BoolFlag{Name: "proxy", Required: false},
 		},
 		Action: func(ctx *cli.Context) error {
 			sourceLang := ctx.String("source-language")
@@ -83,11 +87,12 @@ func ToSTDOUT(revisableLemmas []RevisableLemma) {
 func ToServer(conf *types.Config, revisableLemmas []RevisableLemma) {
 	router := chi.NewRouter()
 	router.Get("/", revisionHandler(conf, revisableLemmas))
+	router.Get("/proxy", proxyHandler(conf))
 
 	clientURL := fmt.Sprintf("http://%s:%d", conf.Host, conf.Port)
 
 	go lib.OpenURLInBrowser(clientURL)
-	fmt.Println("Rofl Web UI is running on " + clientURL)
+	fmt.Println("Lomb is running on " + clientURL)
 	s := &http.Server{
 		Addr:              ":" + fmt.Sprint(conf.Port),
 		Handler:           router,
@@ -114,4 +119,49 @@ func revisionHandler(conf *types.Config, revisableLemmas []RevisableLemma) http.
 			panic("rendering template: " + err.Error())
 		}
 	}
+}
+
+// proxyHandler proxies dictionary urls and does a bit of cleaning
+func proxyHandler(conf *types.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		url := r.URL.Query().Get("url")
+		if url == "" {
+			panic("no url provided")
+		}
+		// Fetch the url.
+		resp, err := http.Get(url)
+		if err != nil {
+			panic(err)
+		}
+		// Parse the body using goquery
+		p, err := cleanup.NewParsedHTML(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+		cssBlacklist := findCSSBlacklist(conf, url)
+		// Clean the body.
+		p.RemoveCSS(cssBlacklist)
+		// Write the cleaned body to the response.
+		html, err := p.RenderHTML()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprint(w, html)
+	}
+}
+
+// findCSSBlacklist finds the dictionary belonging to the url and returns its CSS blacklist.
+func findCSSBlacklist(conf *types.Config, u string) []string {
+	for _, dict := range conf.Dictionaries {
+		// Parse the url and keep only the host.
+		u, err := url.Parse(u)
+		if err != nil {
+			panic(err)
+		}
+		if strings.Contains(dict.URL, u.Host) {
+			fmt.Println(u.Host)
+			return dict.CSSBlacklist
+		}
+	}
+	return []string{}
 }
