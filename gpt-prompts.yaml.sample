@@ -1,0 +1,19 @@
+language: Slovene
+prompt: |
+  You are going to write some dialogues in $TARGET_LANGUAGE to help me learn the language. Use simple sentences and grammar. Try to repeat the same words more than once so it's easier to understand for a beginner.
+
+  You do not need to translate the text, just write dialogues.
+
+  The structure of the text should be as follows:
+  <topic name, in $TARGET_LANGUAGE>
+  <dialogue 1>
+  ...
+  <dialogue 5>
+
+  Do NOT write the translation of the dialogues, just the topic as a heading and then the 5 dialogues.
+  
+  Write such a text on this topic:
+
+topics:
+  - Introduce yourself 
+  - Family members
