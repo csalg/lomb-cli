@@ -6,21 +6,14 @@ import (
 	"strings"
 
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/gpt/openai"
+	"github.com/csalg/lomb-cli/cmd/lomb/config"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
 
-// The way this will work is that the user will pass a filename with yaml.
-// The yaml has to be converted to a series of prompts.
-//
-// Then each prompt is passed to gpt with the previous user message and the gpt response.
-// The gpt response is then parsed and the next prompt is generated and so on.
+const costPer1000Tokens = 0.002
 
-// This a sample of the yaml to parse
-
-// For now, just call the api and ask it to reply hello world.
-
-func Cmd() *cli.Command {
+func Cmd(conf config.Config) *cli.Command {
 	return &cli.Command{
 		Name:  "gpt",
 		Usage: "generate text with gpt",
@@ -34,23 +27,42 @@ func Cmd() *cli.Command {
 				return fmt.Errorf("parsing yaml: %w", err)
 			}
 
-			prompt := prompts[0]
-			res, err := openai.Post([]openai.Message{
-				{Content: prompt, Role: openai.MessageRoleUser},
-			}, "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")
-			if err != nil {
-				return fmt.Errorf("calling openai: %w", err)
+			responses := []string{}
+			totalCost := 0.0
+			for i, prompt := range prompts {
+				fmt.Printf("Prompt %d/%d \n", i+1, len(prompts))
+				res, err := openai.Post([]openai.Message{
+					{Content: prompt, Role: openai.MessageRoleUser},
+				}, conf.OpenAIAPIKey)
+				if err != nil {
+					return fmt.Errorf("calling openai: %w", err)
+				}
+				tokens := res.Usage.TotalTokens
+				cost := float64(tokens) / 1000 * costPer1000Tokens
+				fmt.Printf("Tokens: %d, cost: $%.4f\n", tokens, cost)
+				totalCost += cost
+				fmt.Printf("Total cost: $%.4f\n", totalCost)
+				firstChoice := res.Choices[0].Message.Content
+				fmt.Printf("Response:\n%s\n", firstChoice)
+				responses = append(responses, firstChoice)
+				fmt.Println()
 			}
-			fmt.Println(res)
+			if err := writeResponses(filename+".txt", responses); err != nil {
+				return fmt.Errorf("writing responses: %w", err)
+			}
 			return nil
 		},
 	}
 }
 
 type PromptDoc struct {
-	Language string   `yaml:"language"`
-	Prompt   string   `yaml:"prompt"`
-	Topics   []string `yaml:"topics"`
+	Language string  `yaml:"language"`
+	Prompt   string  `yaml:"prompt"`
+	Topics   []Topic `yaml:"topics"`
+}
+
+type Topic struct {
+	Topic string `yaml:"topic"`
 }
 
 func parseYaml(filename string) ([]string, error) {
@@ -70,8 +82,21 @@ func parseYaml(filename string) ([]string, error) {
 	}
 	var prompts []string
 	for _, topic := range doc.Topics {
-		prompt := strings.ReplaceAll(basePrompt, "$TOPIC", topic)
+		prompt := strings.ReplaceAll(basePrompt, "$TOPIC", topic.Topic)
 		prompts = append(prompts, prompt)
 	}
 	return prompts, nil
+}
+
+func writeResponses(filename string, responses []string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("creating file: %w", err)
+	}
+	defer f.Close()
+	resString := strings.Join(responses, "\n----\n")
+	if _, err := f.WriteString(resString); err != nil {
+		return fmt.Errorf("writing responses: %w", err)
+	}
+	return nil
 }

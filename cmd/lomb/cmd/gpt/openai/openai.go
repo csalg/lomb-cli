@@ -35,7 +35,7 @@ const (
 func NewRequest() *Request {
 	return &Request{
 		Messages:         []Message{},
-		Model:            "text-ada-001",
+		Model:            "gpt-3.5-turbo",
 		Temperature:      0,
 		MaxTokens:        2049,
 		N:                1,
@@ -69,8 +69,8 @@ type Choice struct {
 }
 
 func Post(messages []Message, token string) (Response, error) {
-	// url := "https://api.openai.com/v1/chat/completions"
-	url := "https://api.openai.com/v1/completions"
+	url := "https://api.openai.com/v1/chat/completions"
+	// url := "https://api.openai.com/v1/completions"
 	method := "POST"
 	reqBody := NewRequest()
 	reqBody.Messages = messages
