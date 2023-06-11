@@ -1,10 +1,10 @@
-
 package main
 
 import (
 	"fmt"
 	"os"
 
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/gpt"
 	"github.com/csalg/lomb-cli/pkg/revise"
 	"github.com/urfave/cli/v2"
 )
@@ -15,6 +15,7 @@ func main() {
 		Usage: "Lomb CLI",
 		Commands: []*cli.Command{
 			revise.Cmd(),
+			gpt.Cmd(),
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

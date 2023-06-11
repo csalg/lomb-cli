@@ -20,8 +20,8 @@ type Request struct {
 }
 
 type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role    MessageRole `json:"role"`
+	Content string      `json:"content"`
 }
 
 type MessageRole string
@@ -35,9 +35,9 @@ const (
 func NewRequest() *Request {
 	return &Request{
 		Messages:         []Message{},
-		Model:            "gpt-3.5-turbo",
+		Model:            "text-ada-001",
 		Temperature:      0,
-		MaxTokens:        500,
+		MaxTokens:        2049,
 		N:                1,
 		TopP:             1,
 		PresencePenalty:  0,
@@ -69,7 +69,8 @@ type Choice struct {
 }
 
 func Post(messages []Message, token string) (Response, error) {
-	url := "https://api.openai.com/v1/chat/completions"
+	// url := "https://api.openai.com/v1/chat/completions"
+	url := "https://api.openai.com/v1/completions"
 	method := "POST"
 	reqBody := NewRequest()
 	reqBody.Messages = messages
@@ -92,6 +93,14 @@ func Post(messages []Message, token string) (Response, error) {
 		return Response{}, fmt.Errorf("error sending request: %w", err)
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return Response{}, fmt.Errorf("error reading response body: %w", err)
+		}
+		return Response{}, fmt.Errorf("error response status code: %d, body: %s", res.StatusCode, body)
+	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
