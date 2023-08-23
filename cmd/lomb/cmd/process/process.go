@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/csalg/lomb-cli/cmd/lomb/config"
 	"github.com/csalg/lomb-cli/pkg/types"
@@ -26,7 +25,24 @@ func Cmd(conf config.Config) *cli.Command {
 			if err != nil {
 				return fmt.Errorf("reading text: %w", err)
 			}
-			processedText, err := processText(text, ctx.String("base-language"), ctx.String("target-language"))
+			baseLang, err := types.NewLanguage(ctx.String("base-language"))
+			if err != nil {
+				return fmt.Errorf("parsing base language: %w", err)
+			}
+			targetLang, err := types.NewLanguage(ctx.String("target-language"))
+			if err != nil {
+				return fmt.Errorf("parsing target language: %w", err)
+			}
+			tp, err := NewTextProcessor(Config{
+				BaseLanguage:   baseLang,
+				TargetLanguage: targetLang,
+				DeeplAPIKey:    conf.DeeplAPIKey,
+				DeeplAPIPro:    conf.DeeplAPIPro,
+			})
+			if err != nil {
+				return fmt.Errorf("creating text processor: %w", err)
+			}
+			processedText, err := tp.Process(text)
 			if err != nil {
 				return fmt.Errorf("processing text: %w", err)
 			}
@@ -49,32 +65,6 @@ func readText(filename string) (string, error) {
 		return "", fmt.Errorf("reading file: %w", err)
 	}
 	return string(b), nil
-}
-
-func processText(text, baseLanguage, targetLanguage string) (types.ProcessedText, error) {
-	processedText := types.ProcessedText{
-		BaseLanguage:   baseLanguage,
-		TargetLanguage: targetLanguage,
-	}
-	paragraphsStrArr := strings.Split(text, "\n")
-	for _, paragraphStr := range paragraphsStrArr {
-		paragraph := types.Paragraph{}
-		sentencesStrArr := strings.Split(paragraphStr, ".")
-		for _, sentenceStr := range sentencesStrArr {
-			chunk := types.Chunk{
-				Translation: sentenceStr,
-			}
-			for _, word := range strings.Split(sentenceStr, " ") {
-				chunk.Tokens = append(chunk.Tokens, types.Token{
-					Text:  word,
-					Lemma: word,
-				})
-			}
-			paragraph = append(paragraph, chunk)
-		}
-		processedText.Paragraphs = append(processedText.Paragraphs, paragraph)
-	}
-	return processedText, nil
 }
 
 func writeProcessedText(filename string, processedText types.ProcessedText) error {

@@ -70,7 +70,6 @@ type Choice struct {
 
 func Post(messages []Message, token string) (Response, error) {
 	url := "https://api.openai.com/v1/chat/completions"
-	// url := "https://api.openai.com/v1/completions"
 	method := "POST"
 	reqBody := NewRequest()
 	reqBody.Messages = messages

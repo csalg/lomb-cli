@@ -22,7 +22,7 @@ func Cmd(conf config.Config) *cli.Command {
 		},
 		Action: func(ctx *cli.Context) error {
 			filename := ctx.String("file")
-			prompts, err := parseYaml(filename)
+			prompts, err := extractPrompts(filename)
 			if err != nil {
 				return fmt.Errorf("parsing yaml: %w", err)
 			}
@@ -65,7 +65,7 @@ type Topic struct {
 	Topic string `yaml:"topic"`
 }
 
-func parseYaml(filename string) ([]string, error) {
+func extractPrompts(filename string) ([]string, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("opening file: %w", err)

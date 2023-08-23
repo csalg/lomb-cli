@@ -9,7 +9,10 @@ import (
 )
 
 type Config struct {
-	OpenAIAPIKey string `json:"openai_api_key"`
+	OpenAIAPIKey          string `json:"openai_api_key,omitempty"`
+	DeeplAPIKey           string `json:"deepl_api_key,omitempty"`
+	DeeplAPIPro           bool   `json:"deepl_api_pro,omitempty"`
+	GoogleTranslateAPIKey string `json:"google_translate_api_key,omitempty"`
 }
 
 func Read() (Config, error) {
