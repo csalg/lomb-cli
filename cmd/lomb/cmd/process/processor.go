@@ -100,7 +100,7 @@ func (tp TextProcessor) Process(text string) (types.ProcessedText, error) {
 	itertools.Chunk(sentences, 100, func(sentencesChunk []string, i int) bool {
 		tr, translationErr := tp.Translator.Translate(tp.Config.TargetLanguage, tp.Config.BaseLanguage, sentencesChunk)
 		if translationErr != nil {
-			err = fmt.Errorf("translating sentences %v: %w", sentencesChunk, err)
+			err = fmt.Errorf("translating sentences %v: %w", sentencesChunk, translationErr)
 			return false
 		}
 		for _, t := range tr {

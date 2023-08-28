@@ -1,6 +1,7 @@
 package deepl
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -65,6 +66,12 @@ func IsLanguageSupported(lang types.Language) bool {
 	return false
 }
 
+type request struct {
+	SourceLanguage string   `json:"source_lang"`
+	TargetLanguage string   `json:"target_lang"`
+	Text           []string `json:"text"`
+}
+
 func (dt DeeplTranslator) Translate(sourceLang, targetLang types.Language, text []string) ([]translators.TranslatedText, error) {
 	url := "https://api-free.deepl.com/v2/translate"
 	if dt.apiPro {
@@ -72,26 +79,35 @@ func (dt DeeplTranslator) Translate(sourceLang, targetLang types.Language, text 
 	}
 	method := "POST"
 
-	req, err := http.NewRequest(method, url, nil)
+	jsonBody, err := json.Marshal(request{
+		SourceLanguage: sourceLang.Uppercase(),
+		TargetLanguage: targetLang.Uppercase(),
+		Text:           text,
+	})
+	if err != nil {
+		return []translators.TranslatedText{}, fmt.Errorf("marshalling request body: %s", err)
+	}
+
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return []translators.TranslatedText{}, fmt.Errorf("creating request: %s", err)
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("DeepL-Auth-Key %s", dt.apiKey))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	q := req.URL.Query()
-	q.Add("source_lang", sourceLang.Uppercase())
-	q.Add("target_lang", targetLang.Uppercase())
-	for _, t := range text {
-		q.Add("text", t)
-	}
-	req.URL.RawQuery = q.Encode()
+	req.Header.Add("Content-Type", "application/json")
 
 	res, err := dt.httpClient.Do(req)
 	if err != nil {
 		return []translators.TranslatedText{}, fmt.Errorf("doing request: %s", err)
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return []translators.TranslatedText{}, fmt.Errorf("reading body of failed response: %s", err)
+		}
+		return []translators.TranslatedText{}, fmt.Errorf("request failed (status code %d): %s", res.StatusCode, string(body))
+	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
