@@ -5,15 +5,15 @@ import (
 	"os"
 	"strings"
 
+	"github.com/csalg/lomb-cli/cmd/lomb/bootstrap"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/gpt/openai"
-	"github.com/csalg/lomb-cli/cmd/lomb/config"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
 
 const costPer1000Tokens = 0.002
 
-func Cmd(conf config.Config) *cli.Command {
+func Cmd(conf bootstrap.Config) *cli.Command {
 	return &cli.Command{
 		Name:  "gpt",
 		Usage: "generate text with gpt",

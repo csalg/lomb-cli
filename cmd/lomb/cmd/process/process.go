@@ -6,12 +6,12 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/csalg/lomb-cli/cmd/lomb/config"
+	"github.com/csalg/lomb-cli/cmd/lomb/bootstrap"
 	"github.com/csalg/lomb-cli/pkg/types"
 	"github.com/urfave/cli/v2"
 )
 
-func Cmd(conf config.Config) *cli.Command {
+func Cmd(conf bootstrap.Config) *cli.Command {
 	return &cli.Command{
 		Name:  "process",
 		Usage: "lemmatize and translate a text so it can be used for assisted reading or revision",

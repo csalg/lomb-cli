@@ -1,4 +1,4 @@
-package config
+package bootstrap
 
 import (
 	"encoding/json"
@@ -13,9 +13,11 @@ type Config struct {
 	DeeplAPIKey           string `json:"deepl_api_key,omitempty"`
 	DeeplAPIPro           bool   `json:"deepl_api_pro,omitempty"`
 	GoogleTranslateAPIKey string `json:"google_translate_api_key,omitempty"`
+	Port                  string `json:"port,omitempty"`
+	BaseURL               string `json:"base_url,omitempty"`
 }
 
-func Read() (Config, error) {
+func ReadConfig() (Config, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return Config{}, fmt.Errorf("getting user config directory: %w", err)
@@ -40,6 +42,17 @@ func Read() (Config, error) {
 	if err := json.Unmarshal(b, &conf); err != nil {
 		return Config{}, fmt.Errorf("unmarshaling config file: %w", err)
 	}
+	if conf.Port == "" {
+		conf.Port = "9090"
+	}
+	if conf.BaseURL == "" {
+		conf.BaseURL = "http://localhost"
+	}
 
 	return conf, nil
+}
+
+// ClientURL returns the client URL (e.g. http://localhost:9090)
+func (c Config) ClientURL() string {
+	return fmt.Sprintf("%s:%s", c.BaseURL, c.Port)
 }
