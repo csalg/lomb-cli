@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{.Title}}</title>
+    <title>Drill</title>
 
     <style>
         a { text-decoration: none; }
@@ -17,9 +17,57 @@
             text-align: left;
             padding: 0.5em 1em;
         }
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+        .sub-container {
+            overflow-y: scroll;
+            width: 33%;
+        }
     </style>
 </head>
 
-<body>Hello world</body>
+<body>
+    <div class="container">
+        <div class="sub-container lemmas">
+            <table>
+                <tr>
+                    <th>Lemma</th>
+                    <th>Count</th>
+                </tr>
+            {{ range .LemmaCounts }}
+            <tr>
+                <td class="lemma">{{ .Lemma }}</td>
+                <td>{{ .Count }}</td>
+            </tr>
+            {{ end }}
+            </table>
+        </div>
+        <div class="sub-container dictionary">
+            <iframe width="100%" height="100%"></iframe>
+        </div>
+        <div class="sub-container wiktionary">
+            <iframe width="100%" height="100%"></iframe>
+        </div>
+    </div>
+</body>
+
+<script>
+    // OnClick lemma class print lemma to console
+    const lemmas = document.querySelectorAll('.lemma');
+    lemmas.forEach(lemma => {
+        lemma.addEventListener('click', () => {
+            let url = "https://www.dict.com/?t=bg&set=_bgen&w=" + lemma.textContent;
+            let iframe = document.querySelector('.dictionary>iframe');
+            iframe.src = url;
+
+            let url2 = "https://en.wiktionary.org/w/index.php?title=" + lemma.textContent + "#Bulgarian";
+            let iframe2 = document.querySelector('.wiktionary>iframe');
+            iframe2.src = url2;
+        });
+    });
+</script>
 
 </html>

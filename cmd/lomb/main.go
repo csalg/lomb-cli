@@ -9,6 +9,7 @@ import (
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/drill"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/gpt"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/process"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/read"
 	"github.com/csalg/lomb-cli/pkg/revise"
 	"github.com/urfave/cli/v2"
 )
@@ -27,6 +28,7 @@ func main() {
 			gpt.Cmd(conf),
 			process.Cmd(conf),
 			drill.Cmd(deps, conf),
+			read.Cmd(deps, conf),
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
