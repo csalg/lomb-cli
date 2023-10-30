@@ -9,64 +9,138 @@
     <title>Drill</title>
 
     <style>
+        /* get rid of browser default styles */
         a { text-decoration: none; }
         i { padding: 0.2em; }
         ul { list-style: none; }
-        body { padding: 1em 2em; }
-        th {
-            text-align: left;
-            padding: 0.5em 1em;
+        body { 
+            padding: 0;
+            margin: 0;
         }
-        .container {
+        /* view container, columns and rows */
+        .view-container {
             display: flex;
             height: 100vh;
             width: 100vw;
         }
-        .sub-container {
-            overflow-y: scroll;
+        .view-column {
+            display: flex;
+            flex-direction: column;
             width: 33%;
+        }
+        .view-row {
+            flex: 1;
+            overflow-y: scroll;
+            width: 100%;
+        }
+        /* lemma counts */
+        th {
+            text-align: left;
+            padding: 0.5em 1em;
+        }
+        /* examples */
+        .view-row.examples {
+            display: flex;
+            flex-direction: column;
+            overflow-y: none;
+        }
+        .view-row.examples > .example-translation {
+            flex-basis: 20em;
+            flex-grow: 0;
+            overflow-y: scroll;
+        }
+        .view-row.examples > .example-list {
+            flex-grow: 1;
+            overflow-y: scroll;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="sub-container lemmas">
-            <table>
+    <div class="view-container">
+        {{ range .Grid.Columns }}
+        <div class="view-column">
+            {{ range .Rows }}
+            {{ if (eq .Type "lemma-counts") }}
+            <div class="view-row lemma-counts">
+                <table>
+                    <tr>
+                        <th>Lemma</th>
+                        <th>Count</th>
+                    </tr>
+                {{ range $.Data.LemmaCounts }}
                 <tr>
-                    <th>Lemma</th>
-                    <th>Count</th>
+                    <td class="lemma">{{ .Lemma }}</td>
+                    <td>{{ .Count }}</td>
                 </tr>
-            {{ range .LemmaCounts }}
-            <tr>
-                <td class="lemma">{{ .Lemma }}</td>
-                <td>{{ .Count }}</td>
-            </tr>
+                {{ end }}
+                </table>
+            </div>
             {{ end }}
-            </table>
+            {{ if (eq .Type "examples") }}
+            <div class="view-row examples">
+                <div class="example-translation">
+                    <div class="readable-width" id="translated-example">Translated example</div>
+                </div>
+                <div class="example-list"></div>
+            </div>
+            {{ end }}
+            {{ if (eq .Type "dictionary") }}
+            <div class="view-row dictionary" id="{{ .ID }}">
+                <iframe width="100%" height="100%"></iframe>
+            </div>
+            {{ end }}
+            {{ end }}
         </div>
-        <div class="sub-container dictionary">
-            <iframe width="100%" height="100%"></iframe>
-        </div>
-        <div class="sub-container wiktionary">
-            <iframe width="100%" height="100%"></iframe>
-        </div>
+        {{ end }}
     </div>
 </body>
 
 <script>
-    // OnClick lemma class print lemma to console
     const lemmas = document.querySelectorAll('.lemma');
     lemmas.forEach(lemma => {
-        lemma.addEventListener('click', () => {
-            let url = "https://www.dict.com/?t=bg&set=_bgen&w=" + lemma.textContent;
-            let iframe = document.querySelector('.dictionary>iframe');
+        {{ range .Grid.Columns }}
+            {{ range .Rows }}
+            {{ if (eq .Type "dictionary") }}
+        lemma.addEventListener('click', async () => {
+            let url = "{{ .DictionaryURL }}".replace("$LEMMA", lemma.textContent);
+            let iframe = document.querySelector('#{{ .ID }}>iframe');
             iframe.src = url;
-
-            let url2 = "https://en.wiktionary.org/w/index.php?title=" + lemma.textContent + "#Bulgarian";
-            let iframe2 = document.querySelector('.wiktionary>iframe');
-            iframe2.src = url2;
         });
+            {{ end }}
+            {{ end }}
+        {{ end }}
+
+        lemma.addEventListener('click', async () => {
+            //  Examples
+            const response = await fetch('/examples', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ lemma: lemma.textContent })
+            });
+            const data = await response.json();
+            // Remove all div.example
+            let examples = document.querySelectorAll('.example');
+            examples.forEach(example => {
+                example.remove();
+            });
+            data.examples.forEach(example => {
+                // Create a div.example inside .example-list
+                textArea = document.querySelector('.example-list');
+                let div = document.createElement('div');
+                div.classList.add('example');
+                div.textContent = example.Text;
+                textArea.appendChild(div);
+
+                // Add event listener to div.example
+                div.addEventListener('click', () => {
+                    let supportText = document.querySelector('#translated-example');
+                    supportText.textContent = example.Translation;
+                });
+            });
+        }); 
     });
 </script>
 
