@@ -1,71 +1,41 @@
 package drill
 
 var (
-	DefaultGrid = Grid{
-		Columns: []Column{
+	DefaultGrid = [][]Cell{
+		// Column 1
+		{
 			{
-				Rows: []Row{
-					{
-						Type: RowTypeLemmaCounts,
-						ID:   "lemma-counts",
-					},
-					{
-						Type: RowTypeExamples,
-						ID:   "examples",
-					},
-				},
+				Type: CellLemmaCounts,
+				ID:   "lemma-counts",
 			},
 			{
-				Rows: []Row{
-					{
-						Type:          RowTypeDictionary,
-						ID:            "dictcom",
-						DictionaryURL: "https://www.dict.com/?t=bg&set=_bgen&w=$LEMMA",
-					},
-				},
+				Type: CellExamples,
+				ID:   "examples",
 			},
+		},
+		// Column 2
+		{
 			{
-				Rows: []Row{
-					{
-						Type:          RowTypeDictionary,
-						ID:            "wiktionary",
-						DictionaryURL: "https://en.wiktionary.org/w/index.php?title=$LEMMA#Bulgarian",
-					},
-				},
+				Type:          CellDictionary,
+				ID:            "dictcom",
+				DictionaryURL: "https://www.dict.com/?t=bg&set=_bgen&w=$LEMMA",
+			},
+		},
+		// Column 3
+		{
+			{
+				Type:          CellDictionary,
+				ID:            "wiktionary",
+				DictionaryURL: "https://en.wiktionary.org/w/index.php?title=$LEMMA#Bulgarian",
 			},
 		},
 	}
-	SimpleSentencesGrid = Grid{
-		Columns: []Column{
+	UnderstandableSentences = [][]Cell{
+		// Column 1
+		{
 			{
-				Rows: []Row{
-					{
-						Type: RowTypeLemmaCounts,
-						ID:   "lemma-counts",
-					},
-					{
-						Type: RowTypeExamples,
-						ID:   "examples",
-					},
-				},
-			},
-			{
-				Rows: []Row{
-					{
-						Type:          RowTypeDictionary,
-						ID:            "dictcom",
-						DictionaryURL: "https://www.dict.com/?t=bg&set=_bgen&w=$LEMMA",
-					},
-				},
-			},
-			{
-				Rows: []Row{
-					{
-						Type:          RowTypeDictionary,
-						ID:            "wiktionary",
-						DictionaryURL: "https://en.wiktionary.org/w/index.php?title=$LEMMA#Bulgarian",
-					},
-				},
+				Type: CellUnderstandableSentences,
+				ID:   "understandable-sentences",
 			},
 		},
 	}

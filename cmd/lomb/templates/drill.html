@@ -20,13 +20,14 @@
         /* view container, columns and rows */
         .view-container {
             display: flex;
+            flex-direction: row;
             height: 100vh;
             width: 100vw;
         }
         .view-column {
             display: flex;
+            flex: 1;
             flex-direction: column;
-            width: 33%;
         }
         .view-row {
             flex: 1;
@@ -39,17 +40,20 @@
             padding: 0.5em 1em;
         }
         /* examples */
-        .view-row.examples {
+        .view-row.sentences {
             display: flex;
             flex-direction: column;
             overflow-y: none;
+            padding: 0.5em;
         }
-        .view-row.examples > .example-translation {
-            flex-basis: 20em;
+        .view-row.sentences > .sentence-translation {
+            flex-basis: 4em;
             flex-grow: 0;
+            flex-shrink: 0;
             overflow-y: scroll;
+            padding: 0.5em 0;
         }
-        .view-row.examples > .example-list {
+        .view-row.sentences > .sentence-list {
             flex-grow: 1;
             overflow-y: scroll;
         }
@@ -58,9 +62,9 @@
 
 <body>
     <div class="view-container">
-        {{ range .Grid.Columns }}
+        {{ range .Grid }}
         <div class="view-column">
-            {{ range .Rows }}
+            {{ range . }}
             {{ if (eq .Type "lemma-counts") }}
             <div class="view-row lemma-counts">
                 <table>
@@ -78,11 +82,11 @@
             </div>
             {{ end }}
             {{ if (eq .Type "examples") }}
-            <div class="view-row examples">
-                <div class="example-translation">
-                    <div class="readable-width" id="translated-example">Translated example</div>
+            <div class="view-row sentences" id="examples">
+                <div class="sentence-translation">
+                    <div class="readable-width" id="example-translation-text">Translated example</div>
                 </div>
-                <div class="example-list"></div>
+                <div class="sentence-list" id="example-list"></div>
             </div>
             {{ end }}
             {{ if (eq .Type "dictionary") }}
@@ -99,48 +103,103 @@
 <script>
     const lemmas = document.querySelectorAll('.lemma');
     lemmas.forEach(lemma => {
-        {{ range .Grid.Columns }}
-            {{ range .Rows }}
+        {{ range .Grid }}
+            {{ range . }}
             {{ if (eq .Type "dictionary") }}
-        lemma.addEventListener('click', async () => {
-            let url = "{{ .DictionaryURL }}".replace("$LEMMA", lemma.textContent);
-            let iframe = document.querySelector('#{{ .ID }}>iframe');
-            iframe.src = url;
-        });
+                lemma.addEventListener('click', async () => {
+                    let url = "{{ .DictionaryURL }}".replace("$LEMMA", lemma.textContent);
+                    let iframe = document.querySelector('#{{ .ID }}>iframe');
+                    iframe.src = url;
+                });
             {{ end }}
+
+            {{ if (eq .Type "examples") }}
+                lemma.addEventListener('click', async () => {
+                    //  Examples
+                    const response = await fetch('/examples', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ lemma: lemma.textContent })
+                    });
+                    const data = await response.json();
+                    // Remove all div.example
+                    let examples = document.querySelectorAll('.example');
+                    examples.forEach(example => {
+                        example.remove();
+                    });
+                    data.examples.forEach(example => {
+                        // Create a div.example inside .example-list
+                        textArea = document.querySelector('#example-list');
+                        let div = document.createElement('div');
+                        div.classList.add('example');
+                        div.textContent = example;
+                        textArea.appendChild(div);
+
+                        // Add event listener to div.example
+                        div.addEventListener('click', async () => {
+                            const response = await fetch('/translate', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ text: example })
+                            });
+                            const data = await response.json();
+                            console.log(data);
+                            let supportText = document.querySelector('#example-translation-text');
+                            supportText.textContent = data.translation;
+                        });
+                    });
+                }); 
+            {{ end }}
+
+            {{ if (eq .Type "understandable-sentences") }}
+                lemma.addEventListener('click', async () => {
+                    const response = await fetch('/understandable-sentences', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            min_understandability: 50,
+                            max_length: 15,
+                        })
+                    });
+                    const data = await response.json();
+                    // Remove all div.example
+                    let stcs = document.querySelectorAll('.understandable-sentence');
+                    stcs.forEach(stc => {
+                        stc.remove();
+                    });
+                    data.sentences.forEach(stc => {
+                        // Create a div.sentences inside .example-list
+                        textArea = document.querySelector('#sentence-list');
+                        let div = document.createElement('div');
+                        div.classList.add('sentence');
+                        div.textContent = stc;
+                        textArea.appendChild(div);
+
+                        div.addEventListener('click', async () => {
+                            const response = await fetch('/translate', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ text: example })
+                            });
+                            const data = await response.json();
+                            console.log(data);
+                            let supportText = document.querySelector('#sentence-translation-text');
+                            supportText.textContent = data.translation;
+                        });
+                    });
+                }); 
+            {{ end }}
+
             {{ end }}
         {{ end }}
-
-        lemma.addEventListener('click', async () => {
-            //  Examples
-            const response = await fetch('/examples', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ lemma: lemma.textContent })
-            });
-            const data = await response.json();
-            // Remove all div.example
-            let examples = document.querySelectorAll('.example');
-            examples.forEach(example => {
-                example.remove();
-            });
-            data.examples.forEach(example => {
-                // Create a div.example inside .example-list
-                textArea = document.querySelector('.example-list');
-                let div = document.createElement('div');
-                div.classList.add('example');
-                div.textContent = example.Text;
-                textArea.appendChild(div);
-
-                // Add event listener to div.example
-                div.addEventListener('click', () => {
-                    let supportText = document.querySelector('#translated-example');
-                    supportText.textContent = example.Translation;
-                });
-            });
-        }); 
     });
 </script>
 

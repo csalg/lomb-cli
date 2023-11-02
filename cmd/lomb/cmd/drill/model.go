@@ -1,30 +1,23 @@
 package drill
 
 type PageModel struct {
-	Grid Grid
+	Grid [][]Cell
 	Data Data
 }
 
-type Grid struct {
-	Columns []Column
-}
-
-type Column struct {
-	Rows []Row
-}
-
-type Row struct {
-	Type          RowType
+type Cell struct {
+	Type          CellType
 	ID            string
 	DictionaryURL string
 }
 
-type RowType string
+type CellType string
 
 const (
-	RowTypeLemmaCounts RowType = "lemma-counts"
-	RowTypeExamples    RowType = "examples"
-	RowTypeDictionary  RowType = "dictionary"
+	CellLemmaCounts             CellType = "lemma-counts"
+	CellExamples                CellType = "examples"
+	CellDictionary              CellType = "dictionary"
+	CellUnderstandableSentences CellType = "understandable-sentences"
 )
 
 type Data struct {
