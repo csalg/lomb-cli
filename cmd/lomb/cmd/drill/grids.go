@@ -30,12 +30,30 @@ var (
 			},
 		},
 	}
-	UnderstandableSentences = [][]Cell{
+	AllDataViews = [][]Cell{
 		// Column 1
 		{
 			{
 				Type: CellUnderstandableSentences,
 				ID:   "understandable-sentences",
+			},
+		},
+		// Column 2
+		{
+			{
+				Type: CellLemmaCounts,
+				ID:   "lemma-counts",
+			},
+			{
+				Type: CellExamples,
+				ID:   "examples",
+			},
+		},
+		// Column 3
+		{
+			{
+				Type: CellReader,
+				ID:   "examples",
 			},
 		},
 	}

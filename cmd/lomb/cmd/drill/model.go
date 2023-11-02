@@ -1,5 +1,7 @@
 package drill
 
+import "github.com/csalg/lomb-cli/pkg/types"
+
 type PageModel struct {
 	Grid [][]Cell
 	Data Data
@@ -18,10 +20,12 @@ const (
 	CellExamples                CellType = "examples"
 	CellDictionary              CellType = "dictionary"
 	CellUnderstandableSentences CellType = "understandable-sentences"
+	CellReader                  CellType = "reader"
 )
 
 type Data struct {
-	LemmaCounts []LemmaCount
+	LemmaCounts      []LemmaCount
+	ReaderParagraphs []types.Paragraph
 }
 
 type LemmaCount struct {

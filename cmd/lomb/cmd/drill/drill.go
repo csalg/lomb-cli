@@ -73,9 +73,10 @@ func (srv *Server) Serve() {
 
 	mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.RenderTemplate(w, r, srv.FS, "templates/drill.html", PageModel{
-			Grid: DefaultGrid,
+			Grid: AllDataViews,
 			Data: Data{
-				LemmaCounts: srv.corpus.LemmaCounts,
+				LemmaCounts:      srv.corpus.LemmaCounts,
+				ReaderParagraphs: srv.corpus.Paragraphs,
 			},
 		})
 	})
@@ -103,8 +104,8 @@ func (srv *Server) Serve() {
 
 	mux.Post("/understandable-sentences", func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
-			MinUnderstandability int `json:"min_understandability"`
-			MaxLength            int `json:"max_length"`
+			MinUnderstandability float64 `json:"min_understandability"`
+			MaxLength            float64 `json:"max_length"`
 		}
 		decoder := utils.CreateJSONDecoder(r.Body)
 		if err := decoder.Decode(&req); err != nil {

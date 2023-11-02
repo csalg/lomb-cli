@@ -1,6 +1,7 @@
 package drill
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 	"strings"
@@ -18,12 +19,21 @@ type Corpus struct {
 	LemmaExamplesLookup            map[string][]string
 	TranslationLookup              map[string]string
 	SentencesWithUnderstandability []SentenceWithUnderstandability
+	Paragraphs                     []types.Paragraph
+	Stats                          Stats
 }
 
 type SentenceWithUnderstandability struct {
 	Text              string
 	Understandability int
 	Length            int
+}
+
+type Stats struct {
+	LengthAverage                   float64
+	LengthStdDev                    float64
+	MinLemmaCountPerSentenceAverage float64
+	MinLemmaCountPerSentenceStdDev  float64
 }
 
 func NewCorpus() *Corpus {
@@ -39,6 +49,7 @@ func NewCorpus() *Corpus {
 func (crp *Corpus) LoadTexts(txts ...types.ProcessedText) {
 	for _, txt := range txts {
 		for _, paragraph := range txt.Paragraphs {
+			crp.Paragraphs = append(crp.Paragraphs, paragraph)
 			for _, chunk := range paragraph {
 				// Add translation to lookup
 				crp.TranslationLookup[chunk.Sentence()] = chunk.Translation
@@ -84,6 +95,24 @@ func (crp *Corpus) LoadTexts(txts ...types.ProcessedText) {
 			})
 		}
 	}
+	// Calculate understandability stats
+	crp.Stats = Stats{}
+	lengthSum := 0
+	minLemmaCountPerSentenceSum := 0
+	for _, sentence := range crp.SentencesWithUnderstandability {
+		lengthSum += sentence.Length
+		minLemmaCountPerSentenceSum += sentence.Understandability
+	}
+	crp.Stats.LengthAverage = float64(lengthSum) / float64(len(crp.SentencesWithUnderstandability))
+	crp.Stats.MinLemmaCountPerSentenceAverage = float64(minLemmaCountPerSentenceSum) / float64(len(crp.SentencesWithUnderstandability))
+	lengthVarianceSum := 0.0
+	minLemmaCountPerSentenceVarianceSum := 0.0
+	for _, sentence := range crp.SentencesWithUnderstandability {
+		lengthVarianceSum += (float64(sentence.Length) - crp.Stats.LengthAverage) * (float64(sentence.Length) - crp.Stats.LengthAverage)
+		minLemmaCountPerSentenceVarianceSum += (float64(sentence.Understandability) - crp.Stats.MinLemmaCountPerSentenceAverage) * (float64(sentence.Understandability) - crp.Stats.MinLemmaCountPerSentenceAverage)
+	}
+	crp.Stats.LengthStdDev = lengthVarianceSum / float64(len(crp.SentencesWithUnderstandability))
+	crp.Stats.MinLemmaCountPerSentenceStdDev = minLemmaCountPerSentenceVarianceSum / float64(len(crp.SentencesWithUnderstandability))
 }
 
 // Translate translates the given string.
@@ -110,7 +139,17 @@ func (crp *Corpus) GetExamples(lemma string) []string {
 }
 
 // GetUnderstandableSentences finds understandable sentences
-func (crp *Corpus) GetUnderstandableSentences(maxLength, minUnderstandability int) []SentenceWithUnderstandability {
+func (crp *Corpus) GetUnderstandableSentences(maxLengthStdDev, minUnderstandabilityStdDev float64) []SentenceWithUnderstandability {
+	maxLength := int(crp.Stats.LengthAverage + maxLengthStdDev*crp.Stats.LengthStdDev)
+	minUnderstandability := int(crp.Stats.MinLemmaCountPerSentenceAverage + minUnderstandabilityStdDev*crp.Stats.MinLemmaCountPerSentenceStdDev)
+	fmt.Println("maxLength:", maxLength)
+	fmt.Println("minUnderstandability:", minUnderstandability)
+	fmt.Println("crp.Stats.LengthAverage:", crp.Stats.LengthAverage)
+	fmt.Println("crp.Stats.LengthStdDev:", crp.Stats.LengthStdDev)
+	fmt.Println("crp.Stats.MinLemmaCountPerSentenceAverage:", crp.Stats.MinLemmaCountPerSentenceAverage)
+	fmt.Println("crp.Stats.MinLemmaCountPerSentenceStdDev:", crp.Stats.MinLemmaCountPerSentenceStdDev)
+	fmt.Println("len(crp.SentencesWithUnderstandability):", len(crp.SentencesWithUnderstandability))
+
 	sentencesDedup := make([]SentenceWithUnderstandability, 0, len(crp.SentencesWithUnderstandability))
 	seen := make(map[string]struct{})
 	for _, snt := range crp.SentencesWithUnderstandability {
