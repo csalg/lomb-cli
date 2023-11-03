@@ -156,7 +156,7 @@
                     <div class="controls padding-vertical-2">
                         <div>
                             <label for="min-understandability">Min Understandability</label>
-                            <input type="number" id="min-understandability" name="min-understandability" value="0" min="0" max="100">
+                            <input type="number" id="min-understandability" name="min-understandability" value="0" min="-100" max="100">
                             <label for="max-length">Max Length</label>
                             <input type="number" id="max-length" name="max-length" value="2" min="1" max="10">
                             <button id="understandable-sentences-load-button">Load</button>
@@ -189,6 +189,9 @@
     const readerChunkWasClickedEvent = chunk => {
         return new CustomEvent('readerChunkWasClicked', { detail: { chunk: chunk } });
     };
+    const textWasSelectedEvent = text => {
+        return new CustomEvent('textWasSelected', { detail: { lemma: text } });
+    };
 
     // Helper functions
     const post = (url, data) => {
@@ -214,8 +217,17 @@
     };
 
 
-    /* Event listeners */
+    /* DOM event listeners */
 
+    // Text selection events
+    document.addEventListener('selectionchange', () => {
+        const text = window.getSelection().toString();
+        if (!text) {
+            return;
+        }
+        console.log('selectionchange', text);
+        document.dispatchEvent(textWasSelectedEvent(text));
+    });
     // Lemma
     document.querySelectorAll('.lemma').forEach(lemma => {
         lemma.addEventListener('click', () => {
@@ -236,8 +248,8 @@
     document.querySelector('#understandable-sentences-load-button')?.addEventListener('click', async () => {
         console.log('understandable-sentences-load-button clicked');
         let body = {
-            "min_understandability": parseInt(document.querySelector('#min-understandability').value, 10),
-            "max_length": parseInt(document.querySelector('#max-length').value, 10),
+            "min_understandability": parseFloat(document.querySelector('#min-understandability').value, 10),
+            "max_length": parseFloat(document.querySelector('#max-length').value, 10),
         }
         console.log('understandable-sentences-load-button body', body);
         const { sentences } = await post('/understandable-sentences', body).then(response => response.json());
@@ -256,8 +268,9 @@
         });
     });
 
-    // Click events
-    document.addEventListener('lemmaWasClicked', async ev => {
+    /* Custom event listeners */
+
+    const handleLemmaSelection = async ev => {
         console.log('lemmaWasClicked', ev);
         const lemma = ev.detail.lemma;
         console.log('lemmaWasClicked', lemma);
@@ -279,8 +292,11 @@
             childClass: 'example',
             childText: example,
             onClickEvent: exampleWasClickedEvent(example),
-        }));
-    });
+        }))
+    }
+
+    document.addEventListener('textWasSelected', handleLemmaSelection);
+    document.addEventListener('lemmaWasClicked', handleLemmaSelection);
 
     document.addEventListener('exampleWasClicked', async ev => {
         console.log('exampleWasClicked', ev);
@@ -302,6 +318,8 @@
         const { translation } = await post('/translate', { text: sentence }).then(response => response.json());
         document.querySelector('#understandable-translation-text').textContent = translation;
     });
+
+window.getSelection().toString()
 </script>
 
 </html>

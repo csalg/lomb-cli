@@ -95,4 +95,77 @@ var (
 			},
 		},
 	}
+
+	JustLemmas = [][]Cell{
+		// Column 1
+		{
+			{
+				Type: CellLemmaCounts,
+				ID:   "lemma-counts",
+			},
+			{
+				Type: CellExamples,
+				ID:   "examples",
+			},
+		},
+		// Column 2
+		{
+			{
+				Type:          CellDictionary,
+				ID:            "dictcom",
+				DictionaryURL: "https://www.dict.com/?t=bg&set=_bgen&w=$LEMMA",
+			},
+			{
+				Type:          CellDictionary,
+				ID:            "wiktionary",
+				DictionaryURL: "https://en.wiktionary.org/w/index.php?title=$LEMMA#Bulgarian",
+			},
+		},
+	}
+
+	JustRead = [][]Cell{
+		// Column 1
+		{
+			{
+				Type: CellReader,
+				ID:   "lemma-counts",
+			},
+		},
+		// Column 2
+		{
+			{
+				Type:          CellDictionary,
+				ID:            "dictcom",
+				DictionaryURL: "https://www.dict.com/?t=bg&set=_bgen&w=$LEMMA",
+			},
+			{
+				Type:          CellDictionary,
+				ID:            "wiktionary",
+				DictionaryURL: "https://en.wiktionary.org/w/index.php?title=$LEMMA#Bulgarian",
+			},
+		},
+	}
+
+	JustUnderstandableSentences = [][]Cell{
+		// Column 1
+		{
+			{
+				Type: CellUnderstandableSentences,
+				ID:   "understandable-sentences",
+			},
+		},
+		// Column 2
+		{
+			{
+				Type:          CellDictionary,
+				ID:            "dictcom",
+				DictionaryURL: "https://www.dict.com/?t=bg&set=_bgen&w=$LEMMA",
+			},
+			{
+				Type:          CellDictionary,
+				ID:            "wiktionary",
+				DictionaryURL: "https://en.wiktionary.org/w/index.php?title=$LEMMA#Bulgarian",
+			},
+		},
+	}
 )

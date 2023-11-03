@@ -73,7 +73,7 @@ func (srv *Server) Serve() {
 
 	mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.RenderTemplate(w, r, srv.FS, "templates/study.html", PageModel{
-			Grid: AllDataWithDictionaries,
+			Grid: JustUnderstandableSentences,
 			Data: Data{
 				LemmaCounts:      srv.corpus.LemmaCounts,
 				ReaderParagraphs: srv.corpus.Paragraphs,
@@ -116,6 +116,7 @@ func (srv *Server) Serve() {
 			}
 			return
 		}
+		fmt.Println("req:", req)
 		sentences := srv.corpus.GetUnderstandableSentences(req.MaxLength, req.MinUnderstandability)
 		sentencesStr := make([]string, 0, len(sentences))
 		for _, sentence := range sentences {
