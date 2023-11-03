@@ -18,6 +18,36 @@
             padding: 0;
             margin: 0;
         }
+        /* color scheme */
+        :root {
+          --main-bg-color: black;
+          --main-bg-color-border: #333333;
+          --main-bg-color-hover: #555555;
+          --main-bg-color-translation-box: #222222;
+          --main-text-color: white;
+          --main-accent-color: #ffcc00;
+        }
+        body {
+            background-color: var(--main-bg-color);
+            color: var(--main-text-color);
+        }
+        /* helper classes */
+        .padding-vertical-1 {
+            padding-top: 1em;
+            padding-bottom: 1em;
+        }
+        .padding-vertical-2 {
+            padding-top: 2em;
+            padding-bottom: 2em;
+        }
+        .padding-horizontal-1 {
+            padding-left: 1em;
+            padding-right: 1em;
+        }
+        .padding-horizontal-2 {
+            padding-left: 2em;
+            padding-right: 2em;
+        }
         /* view container, columns and rows */
         .view-container {
             display: flex;
@@ -34,6 +64,7 @@
             flex: 1;
             overflow-y: scroll;
             width: 100%;
+            border: 1px solid var(--main-bg-color-border);
         }
         /* lemma counts */
         th {
@@ -45,14 +76,13 @@
             display: flex;
             flex-direction: column;
             overflow-y: none;
-            padding: 0.5em;
         }
         .view-row.has-sticky-translation > .sticky-translation {
+            background-color: var(--main-bg-color-translation-box);
             flex-basis: 4em;
             flex-grow: 0;
             flex-shrink: 0;
             overflow-y: scroll;
-            padding: 0.5em 0;
         }
         .view-row.has-sticky-translation > .scrollable-content {
             flex-grow: 1;
@@ -69,27 +99,29 @@
 
             {{ if (eq .Type "lemma-counts") }}
             <div class="view-row lemma-counts">
-                <table>
+                <div class="padding-horizontal-1 padding-vertical-1">
+                    <table>
+                        <tr>
+                            <th>Lemma</th>
+                            <th>Count</th>
+                        </tr>
+                    {{ range $.Data.LemmaCounts }}
                     <tr>
-                        <th>Lemma</th>
-                        <th>Count</th>
+                        <td class="lemma">{{ .Lemma }}</td>
+                        <td>{{ .Count }}</td>
                     </tr>
-                {{ range $.Data.LemmaCounts }}
-                <tr>
-                    <td class="lemma">{{ .Lemma }}</td>
-                    <td>{{ .Count }}</td>
-                </tr>
-                {{ end }}
-                </table>
+                    {{ end }}
+                    </table>
+                </div>
             </div>
             {{ end }}
 
             {{ if (eq .Type "examples") }}
             <div class="view-row has-sticky-translation" id="examples">
-                <div class="sticky-translation">
+                <div class="sticky-translation padding-horizontal-1 padding-vertical-1">
                     <div class="readable-width" id="example-translation-text"></div>
                 </div>
-                <div class="scrollable-content" id="example-list"></div>
+                <div class="scrollable-content padding-horizontal-1 padding-vertical-1" id="example-list"></div>
             </div>
             {{ end }}
 
@@ -101,10 +133,10 @@
 
             {{ if (eq .Type "reader") }}
             <div class="view-row has-sticky-translation" id="reader">
-                <div class="sticky-translation">
+                <div class="sticky-translation padding-horizontal-1 padding-vertical-1">
                     <div class="readable-width" id="reader-translation-text"></div>
                 </div>
-                <div class="scrollable-content" id="reader-text">
+                <div class="scrollable-content padding-horizontal-1 padding-vertical-1" id="reader-text">
                 {{ range $.Data.ReaderParagraphs }}
                     <p>{{ range . }}</p>
                         <span class="chunk">{{ .Sentence }}</span>
@@ -117,11 +149,11 @@
 
             {{ if (eq .Type "understandable-sentences") }}
             <div class="view-row has-sticky-translation" id="reader">
-                <div class="sticky-translation">
+                <div class="sticky-translation padding-horizontal-1 padding-vertical-1">
                     <div class="readable-width" id="understandable-translation-text"></div>
                 </div>
-                <div class="scrollable-content">
-                    <div class="controls">
+                <div class="scrollable-content padding-horizontal-1 padding-vertical-1">
+                    <div class="controls padding-vertical-2">
                         <div>
                             <label for="min-understandability">Min Understandability</label>
                             <input type="number" id="min-understandability" name="min-understandability" value="0" min="0" max="100">
@@ -213,6 +245,7 @@
         document.querySelectorAll('.understandable-sentence').forEach(sentence => {
             sentence.remove();
         });
+        document.querySelector('#understandable-translation-text').textContent = '';
         sentences.forEach(sentence => {
             appendDivToList({
                 parentSelector: '#understandable-sentences-list',
@@ -240,6 +273,7 @@
         document.querySelectorAll('.example').forEach(example => {
             example.remove();
         });
+        document.querySelector('#example-translation-text').textContent = '';
         examples.forEach(example => appendDivToList({
             parentSelector: '#example-list',
             childClass: 'example',
