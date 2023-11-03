@@ -1,4 +1,4 @@
-package drill
+package study
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package drill
+package study
 
 import "github.com/csalg/lomb-cli/pkg/types"
 
