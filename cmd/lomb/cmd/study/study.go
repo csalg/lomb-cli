@@ -16,8 +16,8 @@ import (
 
 func Cmd(deps bootstrap.Dependencies, conf bootstrap.Config) *cli.Command {
 	return &cli.Command{
-		Name:  "drill",
-		Usage: "drill vocabulary from lotxt files",
+		Name:  "study",
+		Usage: "study a text",
 		Action: func(ctx *cli.Context) error {
 			filename := ctx.Args().First()
 			if filename == "" {
@@ -31,13 +31,13 @@ func Cmd(deps bootstrap.Dependencies, conf bootstrap.Config) *cli.Command {
 			if !found {
 				return cli.Exit("file not found", 1)
 			}
-			driller := NewServer(deps.FS, Config{
+			srv := NewServer(deps.FS, Config{
 				Port:      conf.Port,
 				ClientURL: conf.ClientURL(),
 			})
-			driller.corpus.LoadTexts(txt)
-			driller.OpenURLInBrowser()
-			driller.Serve()
+			srv.corpus.LoadTexts(txt)
+			srv.OpenURLInBrowser()
+			srv.Serve()
 			return nil
 		},
 	}
@@ -72,7 +72,7 @@ func (srv *Server) Serve() {
 	mux := chi.NewRouter()
 
 	mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		utils.RenderTemplate(w, r, srv.FS, "templates/drill.html", PageModel{
+		utils.RenderTemplate(w, r, srv.FS, "templates/study.html", PageModel{
 			Grid: AllDataWithDictionaries,
 			Data: Data{
 				LemmaCounts:      srv.corpus.LemmaCounts,

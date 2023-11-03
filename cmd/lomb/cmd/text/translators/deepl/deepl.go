@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/process/translators"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators"
 	"github.com/csalg/lomb-cli/pkg/types"
 )
 

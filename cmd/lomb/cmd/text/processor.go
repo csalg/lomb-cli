@@ -1,14 +1,14 @@
-package process
+package text
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/process/lemmatizers/dummylemmatizer"
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/process/lemmatizers/golem"
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/process/translators"
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/process/translators/deepl"
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/process/translators/dummytranslator"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/lemmatizers/dummylemmatizer"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/lemmatizers/golem"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators/deepl"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators/dummytranslator"
 	"github.com/csalg/lomb-cli/pkg/types"
 	"github.com/csalg/lomb-cli/pkg/utils/assert"
 	"github.com/csalg/lomb-cli/pkg/utils/itertools"

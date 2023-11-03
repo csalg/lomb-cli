@@ -6,7 +6,23 @@ type ProcessedText struct {
 	Paragraphs     []Paragraph `json:"paragraphs"`
 }
 
+func (txt ProcessedText) Translation() string {
+	sentence := ""
+	for _, paragraph := range txt.Paragraphs {
+		sentence += paragraph.Translation() + "\n"
+	}
+	return sentence
+}
+
 type Paragraph []Chunk
+
+func (p Paragraph) Translation() string {
+	sentence := ""
+	for _, chunk := range p {
+		sentence += chunk.Translation + " "
+	}
+	return sentence
+}
 
 type Chunk struct {
 	Tokens      []Token `json:"tokens"`

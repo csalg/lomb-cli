@@ -1,4 +1,4 @@
-package process
+package text
 
 import (
 	"encoding/json"
@@ -47,7 +47,10 @@ func Cmd(conf bootstrap.Config) *cli.Command {
 				return fmt.Errorf("processing text: %w", err)
 			}
 			if err := writeProcessedText(ctx.String("file")+".lotxt", processedText); err != nil {
-				return fmt.Errorf("writing processed text: %w", err)
+				return fmt.Errorf("writing lotxt: %w", err)
+			}
+			if err := os.WriteFile(ctx.String("file")+".translated.txt", []byte(processedText.Translation()), 0o644); err != nil {
+				return fmt.Errorf("writing translated text: %w", err)
 			}
 			return nil
 		},
