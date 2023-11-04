@@ -138,7 +138,8 @@
                 </div>
                 <div class="scrollable-content padding-horizontal-1 padding-vertical-1" id="reader-text">
                 {{ range $.Data.ReaderParagraphs }}
-                    <p>{{ range . }}</p>
+                    <p>
+                    {{ range . }}
                         <span class="chunk">{{ .Sentence }}</span>
                     {{ end }}
                     </p>

@@ -11,7 +11,6 @@ import (
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators/gpttranslator"
 	"github.com/csalg/lomb-cli/pkg/types"
 	"github.com/csalg/lomb-cli/pkg/utils/assert"
-	"github.com/csalg/lomb-cli/pkg/utils/itertools"
 )
 
 type TextProcessor struct {
@@ -66,7 +65,11 @@ func NewTextProcessor(conf Config) (TextProcessor, error) {
 	return tp, nil
 }
 
-func (tp TextProcessor) Process(text string) (types.ProcessedText, error) {
+type ProcessOptions struct {
+	FromTranslation bool
+}
+
+func (tp TextProcessor) Process(text string, opts ProcessOptions) (types.ProcessedText, error) {
 	assert.NotNil(tp.Lemmatizer, "lemmatizer")
 	assert.NotNil(tp.Translator, "translator")
 
@@ -75,17 +78,15 @@ func (tp TextProcessor) Process(text string) (types.ProcessedText, error) {
 		TargetLanguage: tp.Config.TargetLanguage,
 	}
 
-	// Lemmatization
+	// Split text into paragraphs and chunks
 	for _, paragraphStr := range strings.SplitAfter(text, "\n") {
 		paragraph := types.Paragraph{}
 		for _, sentence := range strings.SplitAfter(paragraphStr, ".") {
-			tokens, err := tp.Lemmatizer.Lemmatize(sentence)
-			if err != nil {
-				return types.ProcessedText{}, fmt.Errorf("lemmatizing sentence %s: %w", sentence, err)
-			}
-			chunk := types.Chunk{
-				Tokens: tokens,
-				Text:   sentence,
+			chunk := types.Chunk{}
+			if opts.FromTranslation {
+				chunk.Translation = sentence
+			} else {
+				chunk.Text = sentence
 			}
 			paragraph = append(paragraph, chunk)
 		}
@@ -93,37 +94,34 @@ func (tp TextProcessor) Process(text string) (types.ProcessedText, error) {
 	}
 
 	// Translation
-	sentences := []string{}
-	for _, paragraph := range processedText.Paragraphs {
-		for _, chunk := range paragraph {
-			sentences = append(sentences, chunk.Sentence())
-		}
-	}
-	translations := make(map[string]string)
-	var err error
-	itertools.Chunk(sentences, 100, func(sentencesChunk []string, i int) bool {
-		tr, translationErr := tp.Translator.Translate(tp.Config.TargetLanguage, tp.Config.BaseLanguage, sentencesChunk)
-		if translationErr != nil {
-			err = fmt.Errorf("translating sentences %v: %w", sentencesChunk, translationErr)
-			return false
-		}
-		for _, t := range tr {
-			translations[t.Original] = t.Translated
-		}
-		return true
-	})
-	if err != nil {
-		return types.ProcessedText{}, err
-	}
-	for i, paragraph := range processedText.Paragraphs {
-		for j, chunk := range paragraph {
-			translatedSentence, ok := translations[chunk.Sentence()]
-			if !ok {
-				return types.ProcessedText{}, fmt.Errorf("sentence %s not found in translations", chunk.Sentence())
+	for i := range processedText.Paragraphs {
+		for j := range processedText.Paragraphs[i] {
+			if opts.FromTranslation {
+				text, err := tp.Translator.Translate(tp.Config.BaseLanguage, tp.Config.TargetLanguage, []string{processedText.Paragraphs[i][j].Translation})
+				if err != nil {
+					return types.ProcessedText{}, fmt.Errorf("translating sentence %s: %w", processedText.Paragraphs[i][j].Translation, err)
+				}
+				processedText.Paragraphs[i][j].Text = text[0].Translated
+			} else {
+				text, err := tp.Translator.Translate(tp.Config.TargetLanguage, tp.Config.BaseLanguage, []string{processedText.Paragraphs[i][j].Text})
+				if err != nil {
+					return types.ProcessedText{}, fmt.Errorf("translating sentence %s: %w", processedText.Paragraphs[i][j].Text, err)
+				}
+				processedText.Paragraphs[i][j].Translation = text[0].Translated
+
 			}
-			processedText.Paragraphs[i][j].Translation = translatedSentence
 		}
 	}
 
+	// Lemmatization
+	for i := range processedText.Paragraphs {
+		for j := range processedText.Paragraphs[i] {
+			tokens, err := tp.Lemmatizer.Lemmatize(processedText.Paragraphs[i][j].Text)
+			if err != nil {
+				return types.ProcessedText{}, fmt.Errorf("lemmatizing sentence %s: %w", processedText.Paragraphs[i][j].Text, err)
+			}
+			processedText.Paragraphs[i][j].Tokens = tokens
+		}
+	}
 	return processedText, nil
 }

@@ -18,7 +18,7 @@ func ProcessCmd(conf bootstrap.Config) *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "target-language", Aliases: []string{"t"}, Required: true},
 			&cli.StringFlag{Name: "base-language", Aliases: []string{"b"}, Required: true},
-			&cli.BoolFlag{Name: "reverse-languages", Aliases: []string{"r"}, Required: false},
+			&cli.BoolFlag{Name: "from-translation", Aliases: []string{"r"}, Required: false},
 			&cli.StringFlag{Name: "file", Aliases: []string{"f"}, Required: true},
 		},
 		Action: func(ctx *cli.Context) error {
@@ -44,7 +44,10 @@ func ProcessCmd(conf bootstrap.Config) *cli.Command {
 			if err != nil {
 				return fmt.Errorf("creating text processor: %w", err)
 			}
-			processedText, err := tp.Process(text)
+			fromTranslation := ctx.Bool("from-translation")
+			processedText, err := tp.Process(text, ProcessOptions{
+				FromTranslation: fromTranslation,
+			})
 			if err != nil {
 				return fmt.Errorf("processing text: %w", err)
 			}
