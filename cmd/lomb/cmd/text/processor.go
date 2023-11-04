@@ -7,8 +7,8 @@ import (
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/lemmatizers/dummylemmatizer"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/lemmatizers/golem"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators"
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators/deepl"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators/dummytranslator"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators/gpttranslator"
 	"github.com/csalg/lomb-cli/pkg/types"
 	"github.com/csalg/lomb-cli/pkg/utils/assert"
 	"github.com/csalg/lomb-cli/pkg/utils/itertools"
@@ -34,6 +34,7 @@ type Config struct {
 	DeeplAPIKey           string
 	DeeplAPIPro           bool
 	GoogleTranslateAPIKey string
+	OpenAIAPIKey          string
 }
 
 func NewTextProcessor(conf Config) (TextProcessor, error) {
@@ -55,10 +56,12 @@ func NewTextProcessor(conf Config) (TextProcessor, error) {
 	switch {
 	case conf.BaseLanguage == conf.TargetLanguage:
 		tp.Translator = dummytranslator.New()
-	case deepl.IsLanguageSupported(conf.BaseLanguage) && deepl.IsLanguageSupported(conf.TargetLanguage):
-		tp.Translator = deepl.New(conf.DeeplAPIKey, conf.DeeplAPIPro)
+		// DeepL deprecated: Too expensive!
+	// case deepl.IsLanguageSupported(conf.BaseLanguage) && deepl.IsLanguageSupported(conf.TargetLanguage):
+	// 	tp.Translator = deepl.New(conf.DeeplAPIKey, conf.DeeplAPIPro)
 	default:
-		tp.Translator = dummytranslator.New()
+		tp.Translator = gpttranslator.New(conf.OpenAIAPIKey)
+		// tp.Translator = dummytranslator.New()
 	}
 	return tp, nil
 }
@@ -73,15 +76,16 @@ func (tp TextProcessor) Process(text string) (types.ProcessedText, error) {
 	}
 
 	// Lemmatization
-	for _, paragraphStr := range strings.Split(text, "\n") {
+	for _, paragraphStr := range strings.SplitAfter(text, "\n") {
 		paragraph := types.Paragraph{}
-		for _, sentence := range strings.Split(paragraphStr, ".") {
+		for _, sentence := range strings.SplitAfter(paragraphStr, ".") {
 			tokens, err := tp.Lemmatizer.Lemmatize(sentence)
 			if err != nil {
 				return types.ProcessedText{}, fmt.Errorf("lemmatizing sentence %s: %w", sentence, err)
 			}
 			chunk := types.Chunk{
 				Tokens: tokens,
+				Text:   sentence,
 			}
 			paragraph = append(paragraph, chunk)
 		}

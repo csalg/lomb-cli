@@ -1,11 +1,20 @@
 package openai
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/avast/retry-go/v4"
+)
+
+const (
+	timeout           = 20 * time.Second
+	CostPer1000Tokens = 0.002
 )
 
 type Request struct {
@@ -69,6 +78,29 @@ type Choice struct {
 }
 
 func Post(messages []Message, token string) (Response, error) {
+	var res Response
+	err := retry.Do(
+		func() error {
+			var err error
+			res, err = post(messages, token)
+			if err != nil {
+				return err
+			}
+			if res.Choices[0].FinishReason == "length" {
+				return fmt.Errorf("response was truncated")
+			}
+			return nil
+		})
+	if err != nil {
+		return Response{}, fmt.Errorf("error sending request: %w", err)
+	}
+	return res, nil
+}
+
+func post(messages []Message, token string) (Response, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
 	url := "https://api.openai.com/v1/chat/completions"
 	method := "POST"
 	reqBody := NewRequest()
@@ -79,7 +111,7 @@ func Post(messages []Message, token string) (Response, error) {
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest(method, url, strings.NewReader(string(payload)))
+	req, err := http.NewRequestWithContext(ctx, method, url, strings.NewReader(string(payload)))
 
 	if err != nil {
 		return Response{}, fmt.Errorf("error creating request: %w", err)

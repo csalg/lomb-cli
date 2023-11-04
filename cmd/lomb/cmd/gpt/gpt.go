@@ -6,12 +6,10 @@ import (
 	"strings"
 
 	"github.com/csalg/lomb-cli/cmd/lomb/bootstrap"
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/gpt/openai"
+	"github.com/csalg/lomb-cli/pkg/openai"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
-
-const costPer1000Tokens = 0.002
 
 func Cmd(conf bootstrap.Config) *cli.Command {
 	return &cli.Command{
@@ -38,7 +36,7 @@ func Cmd(conf bootstrap.Config) *cli.Command {
 					return fmt.Errorf("calling openai: %w", err)
 				}
 				tokens := res.Usage.TotalTokens
-				cost := float64(tokens) / 1000 * costPer1000Tokens
+				cost := float64(tokens) / 1000 * openai.CostPer1000Tokens
 				fmt.Printf("Tokens: %d, cost: $%.4f\n", tokens, cost)
 				totalCost += cost
 				fmt.Printf("Total cost: $%.4f\n", totalCost)

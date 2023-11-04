@@ -73,7 +73,7 @@ func (srv *Server) Serve() {
 
 	mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.RenderTemplate(w, r, srv.FS, "templates/study.html", PageModel{
-			Grid: JustUnderstandableSentences,
+			Grid: JustRead,
 			Data: Data{
 				LemmaCounts:      srv.corpus.LemmaCounts,
 				ReaderParagraphs: srv.corpus.Paragraphs,

@@ -39,6 +39,7 @@ func ProcessCmd(conf bootstrap.Config) *cli.Command {
 				TargetLanguage: targetLang,
 				DeeplAPIKey:    conf.DeeplAPIKey,
 				DeeplAPIPro:    conf.DeeplAPIPro,
+				OpenAIAPIKey:   conf.OpenAIAPIKey,
 			})
 			if err != nil {
 				return fmt.Errorf("creating text processor: %w", err)

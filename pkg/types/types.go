@@ -26,10 +26,14 @@ func (p Paragraph) Translation() string {
 
 type Chunk struct {
 	Tokens      []Token `json:"tokens"`
+	Text        string  `json:"text"`
 	Translation string  `json:"translation"`
 }
 
 func (ch Chunk) Sentence() string {
+	if ch.Text != "" {
+		return ch.Text
+	}
 	sentence := ""
 	for _, token := range ch.Tokens {
 		sentence += token.Text + " "
