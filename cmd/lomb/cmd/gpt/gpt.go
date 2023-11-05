@@ -5,13 +5,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/csalg/lomb-cli/cmd/lomb/bootstrap"
 	"github.com/csalg/lomb-cli/pkg/openai"
+	"github.com/csalg/lomb-cli/pkg/types"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
 
-func Cmd(conf bootstrap.Config) *cli.Command {
+func Cmd(conf types.Config) *cli.Command {
 	return &cli.Command{
 		Name:  "gpt",
 		Usage: "generate text with gpt",

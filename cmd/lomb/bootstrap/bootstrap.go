@@ -1,13 +1,14 @@
 package bootstrap
 
-import "embed"
+import (
+	"embed"
 
-func Bootstrap(fs *embed.FS) (Dependencies, Config) {
-	// wd, err := os.Getwd()
-	// if err != nil {
-	// 	panic("getting current working directory: " + err.Error())
-	// }
-	conf, err := ReadConfig()
+	"github.com/csalg/lomb-cli/pkg/repository"
+	"github.com/csalg/lomb-cli/pkg/types"
+)
+
+func Bootstrap(fs *embed.FS) (Dependencies, types.Config) {
+	conf, err := repository.ReadConfig()
 	if err != nil {
 		panic("reading config: " + err.Error())
 	}

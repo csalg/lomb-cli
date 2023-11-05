@@ -93,7 +93,7 @@
 
 <body>
     <div class="view-container">
-        {{ range .Grid }}
+        {{ range .View.Grid }}
         <div class="view-column">
             {{ range . }}
 
@@ -173,6 +173,50 @@
         {{ end }}
     </div>
 </body>
+
+<script>
+    document.addEventListener('keydown', ev => {
+        // Clicking ctrl+shift+v shows the available views
+        let ctrlShiftVWasPressed = ev.ctrlKey && ev.shiftKey && ev.key === 'V';
+        if (!ctrlShiftVWasPressed) {
+            return
+        }
+        document.querySelectorAll('body > *').forEach(element => {
+            element.remove();
+        });
+        // And shows a numbered list with the available views
+        availableViews = [
+            {{ range .AvailableViews }}
+            "{{ . }}",
+            {{ end }}
+        ];
+        for (let i = 0; i < availableViews.length; i++) {
+            let view = availableViews[i];
+            let div = document.createElement('div');
+            div.textContent = `${i}: ${view}`;
+            document.addEventListener('keydown', async ev => {
+                console.log('keydown', ev.key, i);
+                if (ev.key !== `${i}`) {
+                    return;
+                }
+
+                // Post new view to server and refresh the page
+                await fetch('/change-view', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ view: view }),
+                }).then(response => response.json()).then(data => {
+                    console.log('change-view response', data);
+                });
+                window.location.reload();
+            });
+            document.body.appendChild(div);
+        }
+    });
+    
+</script>
 
 <script>
     // Custom events

@@ -1,11 +1,11 @@
 package text
 
 import (
-	"github.com/csalg/lomb-cli/cmd/lomb/bootstrap"
+	"github.com/csalg/lomb-cli/pkg/types"
 	"github.com/urfave/cli/v2"
 )
 
-func Cmd(conf bootstrap.Config) *cli.Command {
+func Cmd(conf types.Config) *cli.Command {
 	return &cli.Command{
 		Name:  "text",
 		Usage: "process text",

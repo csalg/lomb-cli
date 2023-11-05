@@ -3,14 +3,13 @@ package text
 import (
 	"fmt"
 
-	"github.com/csalg/lomb-cli/cmd/lomb/bootstrap"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/lemmatizers/dummylemmatizer"
 	"github.com/csalg/lomb-cli/pkg/types"
 	"github.com/csalg/lomb-cli/pkg/utils"
 	"github.com/urfave/cli/v2"
 )
 
-func ReverseCmd(conf bootstrap.Config) *cli.Command {
+func ReverseCmd(conf types.Config) *cli.Command {
 	return &cli.Command{
 		Name:  "reverse",
 		Usage: "reverse the languages of a processed text",

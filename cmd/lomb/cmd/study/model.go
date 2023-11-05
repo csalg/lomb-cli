@@ -3,25 +3,10 @@ package study
 import "github.com/csalg/lomb-cli/pkg/types"
 
 type PageModel struct {
-	Grid [][]Cell
-	Data Data
+	View           types.View
+	Data           Data
+	AvailableViews []string
 }
-
-type Cell struct {
-	Type          CellType
-	ID            string
-	DictionaryURL string
-}
-
-type CellType string
-
-const (
-	CellLemmaCounts             CellType = "lemma-counts"
-	CellExamples                CellType = "examples"
-	CellDictionary              CellType = "dictionary"
-	CellUnderstandableSentences CellType = "understandable-sentences"
-	CellReader                  CellType = "reader"
-)
 
 type Data struct {
 	LemmaCounts      []LemmaCount

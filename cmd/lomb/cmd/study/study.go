@@ -14,7 +14,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func Cmd(deps bootstrap.Dependencies, conf bootstrap.Config) *cli.Command {
+func Cmd(deps bootstrap.Dependencies, conf types.Config) *cli.Command {
 	return &cli.Command{
 		Name:  "study",
 		Usage: "study a text",
@@ -34,6 +34,7 @@ func Cmd(deps bootstrap.Dependencies, conf bootstrap.Config) *cli.Command {
 			srv := NewServer(deps.FS, Config{
 				Port:      conf.Port,
 				ClientURL: conf.ClientURL(),
+				Views:     conf.Views,
 			})
 			srv.corpus.LoadTexts(txt)
 			srv.OpenURLInBrowser()
@@ -47,11 +48,13 @@ type Server struct {
 	FS     *embed.FS
 	config Config
 	corpus *Corpus
+	view   types.View
 }
 
 type Config struct {
 	Port      string
 	ClientURL string
+	Views     []types.View
 }
 
 func NewServer(fs *embed.FS, conf Config) *Server {
@@ -59,6 +62,7 @@ func NewServer(fs *embed.FS, conf Config) *Server {
 		FS:     fs,
 		config: conf,
 		corpus: NewCorpus(),
+		view:   conf.Views[0],
 	}
 }
 
@@ -72,13 +76,46 @@ func (srv *Server) Serve() {
 	mux := chi.NewRouter()
 
 	mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		availableViews := make([]string, 0, len(srv.config.Views))
+		for _, view := range srv.config.Views {
+			availableViews = append(availableViews, view.Name)
+		}
 		utils.RenderTemplate(w, r, srv.FS, "templates/study.html", PageModel{
-			Grid: JustRead,
+			AvailableViews: availableViews,
 			Data: Data{
 				LemmaCounts:      srv.corpus.LemmaCounts,
 				ReaderParagraphs: srv.corpus.Paragraphs,
 			},
+			View: srv.view,
 		})
+	})
+
+	mux.Post("/change-view", func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			View string `json:"view"`
+		}
+		decoder := utils.CreateJSONDecoder(r.Body)
+		if err := decoder.Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			err := jsoniter.NewEncoder(w).Encode(ErrorResponse{Code: http.StatusBadRequest, Message: "invalid request"})
+			if err != nil {
+				fmt.Println("couldn't write body:", err)
+			}
+			return
+		}
+		fmt.Println("req:", req)
+		for _, view := range srv.config.Views {
+			if view.Name == req.View {
+				srv.view = view
+				break
+			}
+		}
+		err := jsoniter.NewEncoder(w).Encode(struct {
+			Success bool `json:"success"`
+		}{Success: true})
+		if err != nil {
+			fmt.Println("couldn't write body:", err)
+		}
 	})
 
 	mux.Post("/examples", func(w http.ResponseWriter, r *http.Request) {
