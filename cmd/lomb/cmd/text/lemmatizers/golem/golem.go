@@ -5,38 +5,22 @@ import (
 	"strings"
 
 	"github.com/aaaton/golem/v4"
-	"github.com/aaaton/golem/v4/dicts/en"
 	"github.com/csalg/lomb-cli/pkg/types"
 )
 
-func IsLanguageSupported(language types.Language) bool {
-	switch language {
-	case types.English:
-		return true
-	default:
-		return false
-	}
+func IsLanguageSupported(language string) bool {
+	return false
 }
 
 type GolemLemmatizer struct {
 	lemmatizer *golem.Lemmatizer
 }
 
-func New(language types.Language) (*GolemLemmatizer, error) {
+func New(language string) (*GolemLemmatizer, error) {
 	if !IsLanguageSupported(language) {
 		return nil, fmt.Errorf("unsupported language: %s", language)
 	}
 	gl := GolemLemmatizer{}
-	var err error
-	switch language {
-	case types.English:
-		gl.lemmatizer, err = golem.New(en.New())
-		if err != nil {
-			return nil, fmt.Errorf("creating golem lemmatizer: %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported language: %s", language)
-	}
 	return &gl, nil
 }
 

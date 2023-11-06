@@ -6,42 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators"
-	"github.com/csalg/lomb-cli/pkg/types"
 )
-
-var DeeplSupportedLanguages []types.Language = []types.Language{
-	types.Bulgarian,
-	types.Czech,
-	types.Danish,
-	types.German,
-	types.Greek,
-	types.English,
-	types.Spanish,
-	types.Estonian,
-	types.Finnish,
-	types.French,
-	types.Hungarian,
-	types.Indonesian,
-	types.Italian,
-	types.Japanese,
-	types.Korean,
-	types.Lithuanian,
-	types.Latvian,
-	types.NorwegianBokmål,
-	types.Dutch,
-	types.Polish,
-	types.Portuguese,
-	types.Romanian,
-	types.Russian,
-	types.Slovak,
-	types.Slovenian,
-	types.Swedish,
-	types.Turkish,
-	types.Ukrainian,
-	types.Chinese,
-}
 
 type DeeplTranslator struct {
 	httpClient *http.Client
@@ -57,22 +25,13 @@ func New(key string, pro bool) DeeplTranslator {
 	}
 }
 
-func IsLanguageSupported(lang types.Language) bool {
-	for _, supportedLang := range DeeplSupportedLanguages {
-		if lang == supportedLang {
-			return true
-		}
-	}
-	return false
-}
-
 type request struct {
 	SourceLanguage string   `json:"source_lang"`
 	TargetLanguage string   `json:"target_lang"`
 	Text           []string `json:"text"`
 }
 
-func (dt DeeplTranslator) Translate(sourceLang, targetLang types.Language, text []string) ([]translators.TranslatedText, error) {
+func (dt DeeplTranslator) Translate(sourceLang, targetLang string, text []string) ([]translators.TranslatedText, error) {
 	url := "https://api-free.deepl.com/v2/translate"
 	if dt.apiPro {
 		url = "https://api.deepl.com/v2/translate"
@@ -80,8 +39,8 @@ func (dt DeeplTranslator) Translate(sourceLang, targetLang types.Language, text 
 	method := "POST"
 
 	jsonBody, err := json.Marshal(request{
-		SourceLanguage: sourceLang.Uppercase(),
-		TargetLanguage: targetLang.Uppercase(),
+		SourceLanguage: strings.ToUpper(sourceLang),
+		TargetLanguage: strings.ToUpper(targetLang),
 		Text:           text,
 	})
 	if err != nil {

@@ -3,7 +3,6 @@ package text
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/csalg/lomb-cli/pkg/types"
@@ -14,28 +13,15 @@ func ProcessCmd(conf types.Config) *cli.Command {
 	return &cli.Command{
 		Name:  "process",
 		Usage: "lemmatize and translate a text so it can be used for assisted reading or revision",
-		Flags: []cli.Flag{
-			&cli.StringFlag{Name: "target-language", Aliases: []string{"t"}, Required: true},
-			&cli.StringFlag{Name: "base-language", Aliases: []string{"b"}, Required: true},
-			&cli.BoolFlag{Name: "from-translation", Aliases: []string{"r"}, Required: false},
-			&cli.StringFlag{Name: "file", Aliases: []string{"f"}, Required: true},
-		},
+		Flags: []cli.Flag{},
 		Action: func(ctx *cli.Context) error {
-			text, err := readText(ctx.String("file"))
+			text, err := readString(ctx.Args().First())
 			if err != nil {
 				return fmt.Errorf("reading text: %w", err)
 			}
-			baseLang, err := types.NewLanguage(ctx.String("base-language"))
-			if err != nil {
-				return fmt.Errorf("parsing base language: %w", err)
-			}
-			targetLang, err := types.NewLanguage(ctx.String("target-language"))
-			if err != nil {
-				return fmt.Errorf("parsing target language: %w", err)
-			}
 			tp, err := NewTextProcessor(Config{
-				BaseLanguage:   baseLang,
-				TargetLanguage: targetLang,
+				BaseLanguage:   conf.BaseLanguage,
+				TargetLanguage: conf.TargetLanguage,
 				DeeplAPIKey:    conf.DeeplAPIKey,
 				DeeplAPIPro:    conf.DeeplAPIPro,
 				OpenAIAPIKey:   conf.OpenAIAPIKey,
@@ -43,14 +29,11 @@ func ProcessCmd(conf types.Config) *cli.Command {
 			if err != nil {
 				return fmt.Errorf("creating text processor: %w", err)
 			}
-			fromTranslation := ctx.Bool("from-translation")
-			processedText, err := tp.Process(text, ProcessOptions{
-				FromTranslation: fromTranslation,
-			})
+			processedText, err := tp.Process(text, ProcessOptions{})
 			if err != nil {
 				return fmt.Errorf("processing text: %w", err)
 			}
-			if err := writeProcessedText(ctx.String("file")+".lotxt", processedText); err != nil {
+			if err := writeJSON(ctx.String("file")+".lotxt", processedText); err != nil {
 				return fmt.Errorf("writing lotxt: %w", err)
 			}
 			if err := os.WriteFile(ctx.String("file")+".translated.txt", []byte(processedText.Translation()), 0o644); err != nil {
@@ -61,21 +44,16 @@ func ProcessCmd(conf types.Config) *cli.Command {
 	}
 }
 
-func readText(filename string) (string, error) {
-	f, err := os.Open(filename)
+func readString(filename string) (string, error) {
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		return "", fmt.Errorf("opening file: %w", err)
-	}
-	defer f.Close()
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return "", fmt.Errorf("reading file: %w", err)
 	}
 	return string(b), nil
 }
 
-func writeProcessedText(filename string, processedText types.ProcessedText) error {
-	file, _ := json.MarshalIndent(processedText, "", " ")
+func writeJSON(filename string, i any) error {
+	file, _ := json.MarshalIndent(i, "", " ")
 	//nolint: gosec
 	if err := os.WriteFile(filename, file, 0o644); err != nil {
 		return err

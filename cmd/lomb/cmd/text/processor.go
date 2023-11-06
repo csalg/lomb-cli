@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/lemmatizers/dummylemmatizer"
-	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/lemmatizers/golem"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators/dummytranslator"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators/gpttranslator"
@@ -24,12 +23,12 @@ type Lemmatizer interface {
 }
 
 type Translator interface {
-	Translate(sourceLang, targetLang types.Language, text []string) ([]translators.TranslatedText, error)
+	Translate(sourceLang, targetLang string, text []string) ([]translators.TranslatedText, error)
 }
 
 type Config struct {
-	BaseLanguage          types.Language
-	TargetLanguage        types.Language
+	BaseLanguage          string
+	TargetLanguage        string
 	DeeplAPIKey           string
 	DeeplAPIPro           bool
 	GoogleTranslateAPIKey string
@@ -39,17 +38,17 @@ type Config struct {
 func NewTextProcessor(conf Config) (TextProcessor, error) {
 	tp := TextProcessor{Config: conf}
 
-	var err error
 	// Set lemmatizer
-	switch {
-	case golem.IsLanguageSupported(conf.TargetLanguage):
-		tp.Lemmatizer, err = golem.New(conf.TargetLanguage)
-		if err != nil {
-			return tp, fmt.Errorf("creating golem lemmatizer: %w", err)
-		}
-	default:
-		tp.Lemmatizer = dummylemmatizer.New()
-	}
+	// switch {
+	// case golem.IsLanguageSupported(conf.TargetLanguage):
+	// 	tp.Lemmatizer, err = golem.New(conf.TargetLanguage)
+	// 	if err != nil {
+	// 		return tp, fmt.Errorf("creating golem lemmatizer: %w", err)
+	// 	}
+	// default:
+	// 	tp.Lemmatizer = dummylemmatizer.New()
+	// }
+	tp.Lemmatizer = dummylemmatizer.New()
 
 	// Set translator
 	switch {

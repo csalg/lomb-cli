@@ -12,7 +12,7 @@ func New() DummyLemmatizer {
 	return DummyLemmatizer{}
 }
 
-func (dl DummyLemmatizer) IsSupported(lang types.Language) bool {
+func (dl DummyLemmatizer) IsSupported(lang string) bool {
 	return true
 }
 

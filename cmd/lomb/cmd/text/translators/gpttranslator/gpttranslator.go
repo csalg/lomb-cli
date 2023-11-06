@@ -6,7 +6,6 @@ import (
 
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text/translators"
 	"github.com/csalg/lomb-cli/pkg/openai"
-	"github.com/csalg/lomb-cli/pkg/types"
 )
 
 // type Translator interface {
@@ -24,7 +23,7 @@ func New(openAIAPIKey string) *GPT {
 }
 
 // Translate translates a list of texts from a source language to a target language.
-func (g *GPT) Translate(sourceLang, targetLang types.Language, texts []string) ([]translators.TranslatedText, error) {
+func (g *GPT) Translate(sourceLang, targetLang string, texts []string) ([]translators.TranslatedText, error) {
 	translatedTexts := []translators.TranslatedText{}
 	totalCost := 0.0
 	for _, text := range texts {

@@ -44,7 +44,7 @@ func ReverseCmd(conf types.Config) *cli.Command {
 				}
 				reversedTxt.Paragraphs = append(reversedTxt.Paragraphs, reversedParagraph)
 			}
-			if err := writeProcessedText(filename+"-reversed", reversedTxt); err != nil {
+			if err := writeJSON(filename+"-reversed", reversedTxt); err != nil {
 				return fmt.Errorf("writing lotxt: %w", err)
 			}
 			return nil

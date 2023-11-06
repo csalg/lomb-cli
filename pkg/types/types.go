@@ -1,8 +1,8 @@
 package types
 
 type ProcessedText struct {
-	BaseLanguage   Language    `json:"base_language"`
-	TargetLanguage Language    `json:"target_language"`
+	BaseLanguage   string      `json:"base_language"`
+	TargetLanguage string      `json:"target_language"`
 	Paragraphs     []Paragraph `json:"paragraphs"`
 }
 
