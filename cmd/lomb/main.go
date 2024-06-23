@@ -7,6 +7,7 @@ import (
 
 	"github.com/csalg/lomb-cli/cmd/lomb/bootstrap"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/gpt"
+	"github.com/csalg/lomb-cli/cmd/lomb/cmd/interact"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/study"
 	"github.com/csalg/lomb-cli/cmd/lomb/cmd/text"
 	"github.com/urfave/cli/v2"
@@ -22,8 +23,9 @@ func main() {
 		Usage: "Lomb CLI",
 		Commands: []*cli.Command{
 			gpt.Cmd(conf),
-			text.Cmd(conf),
+			interact.Cmd(deps, conf),
 			study.Cmd(deps, conf),
+			text.Cmd(conf),
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
